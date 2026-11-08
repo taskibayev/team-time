@@ -1,0 +1,7 @@
+.git
+.php-cs-fixer.cache
+.phpunit.cache
+.docs
+tests
+var
+vendor

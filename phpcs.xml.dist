@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<ruleset name="TeamTime">
+    <description>TeamTime PHP coding standard.</description>
+
+    <file>src</file>
+    <file>tests</file>
+    <file>migrations</file>
+
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/var/*</exclude-pattern>
+
+    <rule ref="PSR12"/>
+    <rule ref="./tools/phpcs/TeamTime/Sniffs/WhiteSpace/StatementAfterClosingBraceSniff.php"/>
+
+    <!-- PSR-12 defines 120 characters as a soft limit, not an error. -->
+    <rule ref="Generic.Files.LineLength">
+        <severity>0</severity>
+    </rule>
+</ruleset>

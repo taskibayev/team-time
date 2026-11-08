@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<div class="page-heading">
+  <div><h1>Timers</h1><p class="page-intro">Manage employees and monitor their work sessions.</p></div>
+  <div data-controller="modal">
+    <button class="button" type="button" data-action="modal#open">Add employee</button>
+    <dialog class="timer-dialog employee-dialog" data-modal-target="dialog" data-action="click->modal#closeOnBackdrop"><div class="dialog-panel">
+      <div class="dialog-heading"><div><span class="eyebrow">Team member</span><h2>Add employee</h2></div><button class="icon-button" type="button" aria-label="Close" data-action="modal#close">×</button></div>
+      {{ form_start(employeeForm) }}
+      {{ form_row(employeeForm.firstName, {attr: {'data-modal-target': 'input', autocomplete: 'given-name'}}) }}
+      {{ form_row(employeeForm.lastName, {attr: {autocomplete: 'family-name'}}) }}
+      <div class="form-grid">{{ form_row(employeeForm.position) }}{{ form_row(employeeForm.department) }}</div>
+      <div class="dialog-actions"><button class="button secondary" type="button" data-action="modal#close">Cancel</button><button class="button" type="submit">Add employee</button></div>
+      {{ form_end(employeeForm) }}
+    </div></dialog>
+  </div>
+</div>
+<div class="employee-list" aria-label="Employee timers">
+{% for employee in employees %}
+<section class="employee-row">
+  <div class="employee-identity"><span class="employee-avatar" aria-hidden="true">{{ employee.firstName|first }}{{ employee.lastName|first }}</span><div><h2><a href="{{ path('employee_show',{id:employee.id}) }}">{{ employee.fullName }}</a></h2><p>{{ employee.position|title }} · {{ employee.department|title }}</p></div></div>
+  <div class="employee-actions">
+  <a class="button secondary details-button" href="{{ path('employee_show',{id:employee.id}) }}">View details</a>
+  <div data-controller="modal">
+    <button class="button secondary edit-button" type="button" data-action="modal#open">Edit</button>
+    <dialog class="timer-dialog employee-dialog" data-modal-target="dialog" data-action="click->modal#closeOnBackdrop"><div class="dialog-panel">
+      <div class="dialog-heading"><div><span class="eyebrow">Team member</span><h2>Edit {{ employee.fullName }}</h2></div><button class="icon-button" type="button" aria-label="Close" data-action="modal#close">×</button></div>
+      {% set editForm = editForms[employee.id] %}
+      {{ form_start(editForm) }}
+      {{ form_row(editForm.firstName, {attr: {'data-modal-target': 'input', autocomplete: 'given-name'}}) }}
+      {{ form_row(editForm.lastName, {attr: {autocomplete: 'family-name'}}) }}
+      <div class="form-grid">{{ form_row(editForm.position) }}{{ form_row(editForm.department) }}</div>
+      <div class="dialog-actions"><button class="button secondary" type="button" data-action="modal#close">Cancel</button><button class="button" type="submit">Save changes</button></div>
+      {{ form_end(editForm) }}
+    </div></dialog>
+  </div>
+  {% if active[employee.id] is defined %}
+    {% set record = active[employee.id] %}
+    <div class="running-timer"><span class="status-dot" aria-hidden="true"></span><div class="running-details"><span class="running-description">{{ record.description }}</span><strong data-controller="timer" data-timer-start-value="{{ record.startedAt.timestamp }}">Running</strong></div><form method="post" action="{{ path('timer_stop',{id:record.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('stop'~record.id) }}"><button class="button danger" type="submit">Stop</button></form></div>
+  {% else %}
+    <div data-controller="modal"><button class="button" type="button" data-action="modal#open">Start timer</button>
+    <dialog class="timer-dialog" data-modal-target="dialog" data-action="click->modal#closeOnBackdrop"><div class="dialog-panel"><div class="dialog-heading"><div><span class="eyebrow">New time record</span><h2>Start timer for {{ employee.fullName }}</h2></div><button class="icon-button" type="button" aria-label="Close" data-action="modal#close">×</button></div><form method="post" action="{{ path('timer_start',{id:employee.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('start'~employee.id) }}"><label for="description-{{ employee.id }}">Description</label><input id="description-{{ employee.id }}" name="description" required maxlength="255" list="suggestions" autocomplete="off" data-modal-target="input"><p class="field-hint">Choose a suggestion or enter a custom description.</p><div class="dialog-actions"><button class="button secondary" type="button" data-action="modal#close">Cancel</button><button class="button" type="submit">Start timer</button></div></form></div></dialog></div>
+  {% endif %}
+  </div>
+</section>
+{% else %}<div class="empty"><strong>No employees yet</strong><p>Add an employee before starting a timer.</p></div>{% endfor %}
+</div>
+<datalist id="suggestions">{% for value in suggestions %}<option value="{{ value }}">{% endfor %}</datalist>
+{% endblock %}

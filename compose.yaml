@@ -1,0 +1,25 @@
+services:
+  database:
+    image: postgres:16-alpine
+    environment: {POSTGRES_DB: teamtime, POSTGRES_USER: teamtime, POSTGRES_PASSWORD: teamtime}
+    healthcheck: {test: [CMD-SHELL, pg_isready -U teamtime], interval: 2s, timeout: 3s, retries: 20}
+    volumes: [teamtime-data:/var/lib/postgresql/data]
+  app:
+    build: .
+    environment: {APP_ENV: dev, APP_DEBUG: 1, APP_SECRET: local-development-secret, DATABASE_URL: 'postgresql://teamtime:teamtime@database:5432/teamtime?serverVersion=16&charset=utf8'}
+    ports: ['8080:8080']
+    depends_on: {database: {condition: service_healthy}}
+  test-database:
+    image: postgres:16-alpine
+    environment: {POSTGRES_DB: teamtime_test, POSTGRES_USER: teamtime, POSTGRES_PASSWORD: teamtime}
+    profiles: [test]
+  test:
+    build: .
+    profiles: [test]
+    volumes: ['.:/app']
+    working_dir: /app
+    environment: {APP_ENV: test, APP_SECRET: test, DATABASE_URL: 'postgresql://teamtime:teamtime@test-database:5432/teamtime?serverVersion=16&charset=utf8'}
+    depends_on: [test-database]
+    entrypoint: ['sh','-c']
+    command: ['composer install --no-interaction && php bin/console doctrine:database:create --if-not-exists && php bin/console doctrine:migrations:migrate --no-interaction && composer cs:check && php bin/phpunit && vendor/bin/phpstan analyse']
+volumes: {teamtime-data: {}}

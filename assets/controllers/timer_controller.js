@@ -1,0 +1,2 @@
+import { Controller } from '@hotwired/stimulus';
+export default class extends Controller { static values={start:Number}; connect(){this.tick();this.interval=setInterval(()=>this.tick(),1000)} disconnect(){clearInterval(this.interval)} tick(){const s=Math.max(0,Math.floor(Date.now()/1000)-this.startValue);this.element.textContent=`Running · ${Math.floor(s/3600)}h ${String(Math.floor(s/60)%60).padStart(2,'0')}m ${String(s%60).padStart(2,'0')}s`;}}

@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<h1>Reports</h1>
+<form method="get" class="report-filters" data-controller="period">
+  <div class="date-filters">
+    <label>Period<select name="preset" data-period-target="preset" data-action="change->period#render"><option value="today">Today</option><option value="last7" {{ preset=='last7'?'selected' }}>Last 7 days</option><option value="month" {{ preset=='month'?'selected' }}>Last month</option><option value="custom" {{ preset=='custom'?'selected' }}>Custom</option></select></label>
+    <label data-period-target="dates" {{ preset!='custom'?'hidden' }}>From<input type="date" name="from" value="{{ from|date('Y-m-d') }}"></label>
+    <label data-period-target="dates" {{ preset!='custom'?'hidden' }}>To<input type="date" name="to" value="{{ to|date_modify('-1 day')|date('Y-m-d') }}"></label>
+  </div>
+  <div class="checklist-filters">
+    <div class="employee-filter" data-controller="multi-select">
+      <span class="filter-label">Employees</span>
+      <details class="multi-select"><summary><span data-multi-select-target="summary">All employees</span><span class="select-chevron" aria-hidden="true">⌄</span></summary>
+        <div class="multi-select-menu">
+          <div class="multi-select-options">{% for employee in employees %}<label><input type="checkbox" name="employees[]" value="{{ employee.id }}" data-name="{{ employee.fullName }}" data-multi-select-target="checkbox" data-action="change->multi-select#render" {{ employee.id in ids?'checked' }}><span>{{ employee.fullName }}</span></label>{% endfor %}</div>
+          <div class="multi-select-footer"><button type="button" data-multi-select-target="clear" data-action="multi-select#clear">Clear all</button></div>
+        </div>
+      </details>
+      <div class="selected-employees" data-multi-select-target="selected" aria-live="polite"></div>
+    </div>
+    <fieldset class="checklist"><legend>Position</legend>{% for id,label in positions %}<label><input type="checkbox" name="positions[]" value="{{ id }}" {{ id in selectedPositions?'checked' }}><span>{{ label }}</span></label>{% endfor %}</fieldset>
+    <fieldset class="checklist"><legend>Department</legend>{% for id,label in departments %}<label><input type="checkbox" name="departments[]" value="{{ id }}" {{ id in selectedDepartments?'checked' }}><span>{{ label }}</span></label>{% endfor %}</fieldset>
+  </div>
+  <button class="button" type="submit">Run report</button>
+</form>
+<p>Calculated at {{ now|date('Y-m-d H:i:s T') }}</p>
+{% if report.rows %}
+<table><thead><tr><th>Employee</th><th>Tracked</th><th>Working equivalent</th><th class="actions-column">Actions</th></tr></thead><tbody>{% for row in report.rows %}<tr><td>{{ row.employee.fullName }}</td><td>{{ (row.seconds/3600)|round(0,'floor') }}h {{ ((row.seconds%3600)/60)|round(0,'floor') }}m</td><td>{{ row.equivalent ?? '—' }}</td><td class="actions-column"><a class="button secondary table-action" href="{{ path('employee_show',{id:row.employee.id}) }}">View details</a></td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="empty"><strong>0h 00m</strong><p>No tracked time matches these filters.</p></div>{% endif %}
+{% if report.details %}<h2>Time records</h2><ul>{% for item in report.details %}<li>{{ item.record.description }} — {{ (item.seconds/60)|round(0,'floor') }} min {% if item.record.running %}<strong>Running</strong>{% endif %}</li>{% endfor %}</ul>{% endif %}
+{% endblock %}
