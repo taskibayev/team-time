@@ -2,6 +2,8 @@
 
 TeamTime is a Symfony 7.4/PostgreSQL employee time tracker. All bundled data is fictional.
 
+**Live application:** [team-time-7h4y.onrender.com](https://team-time-7h4y.onrender.com)
+
 ## Local use
 
 Run `docker compose up --build`, then open <http://localhost:8080>. Startup waits for PostgreSQL, runs migrations, and idempotently adds sample data. The named volume preserves data.
