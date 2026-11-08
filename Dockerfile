@@ -8,7 +8,8 @@ COPY --from=vendor /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY --from=vendor /app/vendor vendor
 COPY . .
-RUN php bin/console asset-map:compile
+RUN php bin/console importmap:install --no-interaction \
+    && php bin/console asset-map:compile
 EXPOSE 8080
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["sh","-c","php -S 0.0.0.0:${PORT:-8080} -t public"]
